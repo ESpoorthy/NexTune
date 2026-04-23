@@ -295,13 +295,13 @@ with col_left:
         has_hi_res  = st.toggle("🎵 Hi-Res Audio",       value=bool(st.session_state["has_hi_res"]))
         has_spatial = st.toggle("🌐 Spatial Audio",      value=bool(st.session_state["has_spatial"]))
         has_voice   = st.toggle("🗣️ Voice Assistant",    value=bool(st.session_state.get("has_voice", False)))
+        has_foldable    = st.toggle("📦 Foldable Design",    value=bool(st.session_state.get("has_foldable", False)))
     with c2:
         has_dual        = st.toggle("📱 Dual Pairing",       value=bool(st.session_state["has_dual"]))
         has_codec       = st.toggle("⚡ Premium Codec",      value=bool(st.session_state["has_codec"]))
         has_low_lat     = st.toggle("🎮 Low Latency",        value=bool(st.session_state["has_low_lat"]))
         has_touch       = st.toggle("👆 Smart Touch",        value=bool(st.session_state.get("has_touch", False)))
         has_fast_charge = st.toggle("🔌 Fast Charging",      value=bool(st.session_state.get("has_fast_charge", False)))
-        has_foldable    = st.toggle("📦 Foldable Design",    value=bool(st.session_state.get("has_foldable", False)))
         has_waterproof  = st.toggle("🌊 Waterproof",         value=bool(st.session_state.get("has_waterproof", False)))
 
     anc_db = 0

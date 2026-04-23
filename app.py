@@ -286,6 +286,7 @@ with col_left:
         has_dual    = st.toggle("📱 Dual Pairing",     value=bool(st.session_state["has_dual"]))
         has_codec   = st.toggle("⚡ Premium Codec",    value=bool(st.session_state["has_codec"]))
         has_low_lat = st.toggle("🎮 Low Latency",      value=bool(st.session_state["has_low_lat"]))
+        has_touch   = st.toggle("👆 Smart Touch",      value=bool(st.session_state.get("has_touch", False)))
 
     anc_db = 0
     if has_anc:
@@ -319,6 +320,7 @@ with col_right:
             st.session_state["result"] = p
             st.session_state["tier"]   = tier
             st.session_state["err"]    = e
+            st.session_state["has_touch"] = has_touch
         else:
             st.session_state["result"] = None
             st.session_state["err"]    = "Model not loaded. Run model_training.ipynb first."
@@ -363,6 +365,10 @@ with col_right:
   <div style="flex:1;min-width:80px;background:{STAT_BG};border:1px solid {CARD_BORDER};border-radius:9px;padding:.7rem .4rem;text-align:center;">
     <div style="font-size:.62rem;color:{FAINT};text-transform:uppercase;letter-spacing:.07em;">ANC</div>
     <div style="font-size:.85rem;font-weight:700;color:{TEXT};margin-top:.15rem;">{anc_lbl}</div>
+  </div>
+  <div style="flex:1;min-width:80px;background:{STAT_BG};border:1px solid {CARD_BORDER};border-radius:9px;padding:.7rem .4rem;text-align:center;">
+    <div style="font-size:.62rem;color:{FAINT};text-transform:uppercase;letter-spacing:.07em;">Touch</div>
+    <div style="font-size:.85rem;font-weight:700;color:{TEXT};margin-top:.15rem;">{"✅ Yes" if st.session_state.get("has_touch") else "❌ No"}</div>
   </div>
 </div>""", unsafe_allow_html=True)
 

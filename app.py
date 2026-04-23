@@ -149,7 +149,7 @@ STAT_BG     = "rgba(13,21,38,.7)"  if is_dark else "rgba(241,245,249,.9)"
 FOOTER_COL  = "#334155"            if is_dark else "#64748b"
 IDLE_P      = "#475569"            if is_dark else "#64748b"
 
-bg_css = f"background-image:url('data:image/jpg;base64,{bg}');background-size:cover;background-position:center;background-attachment:fixed;" if bg else ""
+bg_css = f"background-image:url('data:image/jpg;base64,{bg}');background-size:cover;background-position:center top;background-attachment:scroll;" if bg else ""
 
 st.markdown(f"""
 <style>

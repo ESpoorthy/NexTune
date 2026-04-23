@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexTune — Headphone Price Predictor</title>
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0a0e1a;
+    --card: rgba(255,255,255,0.05);
+    --card-border: rgba(0,212,255,0.2);
+    --text: #e0f0ff;
+    --text-muted: #8ab4cc;
+    --input-bg: rgba(0,0,0,0.4);
+    --input-border: rgba(0,212,255,0.3);
+    --input-text: #e0f0ff;
+    --label: #7ecfea;
+    --accent: #00d4ff;
+    --accent2: #0066ff;
+    --btn: linear-gradient(135deg,#00d4ff,#0066ff);
+    --result-bg: rgba(0,212,255,0.08);
+    --result-border: rgba(0,212,255,0.4);
+    --toggle-bg: rgba(0,212,255,0.15);
+    --shadow: 0 8px 32px rgba(0,212,255,0.15);
+  }
+  :root[data-theme="light"] {
+    --bg: #f0f4ff;
+    --card: rgba(255,255,255,0.85);
+    --card-border: rgba(0,100,200,0.2);
+    --text: #0a1a2e;
+    --text-muted: #4a6080;
+    --input-bg: rgba(255,255,255,0.9);
+    --input-border: rgba(0,100,200,0.3);
+    --input-text: #0a1a2e;
+    --label: #0055aa;
+    --accent: #0066ff;
+    --accent2: #00aaff;
+    --btn: linear-gradient(135deg,#0066ff,#00aaff);
+    --result-bg: rgba(0,100,255,0.06);
+    --result-border: rgba(0,100,255,0.3);
+    --toggle-bg: rgba(0,100,200,0.1);
+    --shadow: 0 8px 32px rgba(0,100,200,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── Background image ── */
+  .bg-image {
+    position: fixed;
+    inset: 0;
+    background-image: url('/static/bg.jpg'), url('/static/bg.svg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    transition: opacity 0.3s;
+  }
+  [data-theme="dark"]  .bg-image { opacity: 0.35; }
+  [data-theme="light"] .bg-image { opacity: 0.12; }
+
+  .bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    transition: background 0.3s;
+  }
+  [data-theme="dark"]  .bg-overlay { background: linear-gradient(135deg,rgba(10,14,26,0.7) 0%,rgba(0,20,40,0.5) 100%); }
+  [data-theme="light"] .bg-overlay { background: linear-gradient(135deg,rgba(240,244,255,0.6) 0%,rgba(200,220,255,0.4) 100%); }
+
+  /* ── Layout ── */
+  .page { position: relative; z-index: 2; min-height: 100vh; padding: 20px; }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto 28px;
+    padding: 0 4px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { font-size: 28px; }
+  .logo-text { font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+  .logo-sub  { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ── Theme toggle ── */
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+  .toggle-label { font-size: 12px; color: var(--text-muted); }
+  .toggle {
+    position: relative; width: 52px; height: 26px; cursor: pointer;
+    background: var(--toggle-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 13px;
+    transition: background 0.3s;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: transform 0.3s;
+    box-shadow: 0 0 6px var(--accent);
+  }
+  [data-theme="light"] .toggle::after { transform: translateX(26px); }
+  .toggle-icon { font-size: 14px; }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 32px 36px;
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow);
+    max-width: 900px;
+    margin: 0 auto;
+    transition: background 0.3s, border 0.3s;
+  }
+  .card-title {
+    font-size: 18px; font-weight: 600;
+    color: var(--accent); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before { content: ''; display: block; width: 4px; height: 20px; background: var(--accent); border-radius: 2px; }
+
+  /* ── Form grid ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label { font-size: 12px; font-weight: 600; color: var(--label); text-transform: uppercase; letter-spacing: 0.8px; }
+
+  select, input[type="number"], input[type="range"] {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    color: var(--input-text);
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  select:focus, input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
+  }
+  select option { background: #0a1a2e; color: #e0f0ff; }
+
+  /* ── Checkboxes ── */
+  .checks-title { font-size: 12px; font-weight: 600; color: var(--label); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+  .checks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .check-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border 0.2s, background 0.2s;
+    font-size: 13px;
+  }
+  .check-item:hover { border-color: var(--accent); }
+  .check-item input[type="checkbox"] { display: none; }
+  .check-box {
+    width: 18px; height: 18px; border-radius: 5px;
+    border: 2px solid var(--input-border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.2s;
+  }
+  .check-item input:checked ~ .check-box {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .check-item input:checked ~ .check-box::after { content: '✓'; color: #000; font-size: 11px; font-weight: 700; }
+  .check-item input:checked ~ span { color: var(--accent); }
+
+  /* ── Submit ── */
+  .btn-submit {
+    width: 100%; padding: 14px;
+    background: var(--btn);
+    border: none; border-radius: 12px;
+    color: #fff; font-size: 16px; font-weight: 700;
+    cursor: pointer; letter-spacing: 1px;
+    margin-top: 24px;
+    transition: opacity 0.2s, transform 0.1s;
+    box-shadow: 0 4px 20px rgba(0,212,255,0.3);
+  }
+  .btn-submit:hover  { opacity: 0.9; transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+
+  /* ── Result ── */
+  .result {
+    margin-top: 28px;
+    background: var(--result-bg);
+    border: 1px solid var(--result-border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  .result-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+  .result-price { font-size: 52px; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 6px; }
+  .result-range { font-size: 16px; color: var(--text-muted); margin-bottom: 20px; }
+  .result-range span { color: var(--text); font-weight: 600; }
+
+  .result-tags { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .tag {
+    padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    color: var(--text-muted);
+  }
+  .tag.accent { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--card-border); margin: 24px 0; }
+
+  /* ── Range slider ── */
+  input[type="range"] {
+    padding: 0; height: 6px; border-radius: 3px;
+    -webkit-appearance: none; appearance: none;
+    background: var(--input-border);
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    border-radius: 50%; background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .range-val { font-size: 13px; color: var(--accent); font-weight: 600; text-align: right; }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .checks-grid { grid-template-columns: 1fr 1fr; }
+    .card { padding: 20px; }
+    .result-price { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-image"></div>
+<div class="bg-overlay"></div>
+
+<div class="page">
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🎧</span>
+      <div>
+        <div class="logo-text">NexTune</div>
+        <div class="logo-sub">Price Prediction Engine</div>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <span class="toggle-icon">🌙</span>
+      <div class="toggle" id="themeToggle" title="Toggle light/dark mode"></div>
+      <span class="toggle-icon">☀️</span>
+      <span class="toggle-label" id="themeLabel">Dark</span>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="card-title">Configure Your Headphone</div>
+
+    <form method="POST" action="/predict">
+
+      <div class="form-grid">
+
+        <!-- Brand -->
+        <div class="form-group">
+          <label>Brand</label>
+          <select name="brand">
+            {% for b in brands %}
+            <option value="{{ b }}" {% if form and form.brand == b %}selected{% endif %}>{{ b }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category">
+            <option value="true wireless earbuds"  {% if form and form.category == 'true wireless earbuds' %}selected{% endif %}>True Wireless Earbuds (TWS)</option>
+            <option value="over-ear headphone"     {% if form and form.category == 'over-ear headphone' %}selected{% endif %}>Over-Ear Headphone</option>
+            <option value="neckband"               {% if form and form.category == 'neckband' %}selected{% endif %}>Neckband</option>
+          </select>
+        </div>
+
+        <!-- Rating -->
+        <div class="form-group">
+          <label>Expected Rating</label>
+          <input type="number" name="rating" min="1" max="5" step="0.1"
+                 value="{{ form.rating if form else 4.0 }}" required>
+        </div>
+
+        <!-- Bluetooth Version -->
+        <div class="form-group">
+          <label>Bluetooth Version</label>
+          <select name="bt_version">
+            <option value="5.0" {% if form and form.bt_version|string == '5.0' %}selected{% endif %}>v5.0</option>
+            <option value="5.1" {% if form and form.bt_version|string == '5.1' %}selected{% endif %}>v5.1</option>
+            <option value="5.2" {% if form and form.bt_version|string == '5.2' %}selected{% endif %}>v5.2</option>
+            <option value="5.3" {% if not form or form.bt_version|string == '5.3' %}selected{% endif %}>v5.3</option>
+            <option value="5.4" {% if form and form.bt_version|string == '5.4' %}selected{% endif %}>v5.4</option>
+            <option value="6.0" {% if form and form.bt_version|string == '6.0' %}selected{% endif %}>v6.0</option>
+          </select>
+        </div>
+
+        <!-- Driver Size -->
+        <div class="form-group">
+          <label>Driver Size (mm)</label>
+          <input type="number" name="driver_mm" min="6" max="50" step="1"
+                 value="{{ form.driver_mm if form else 10 }}">
+        </div>
+
+        <!-- IPX Level -->
+        <div class="form-group">
+          <label>IPX Water Resistance Level</label>
+          <select name="ipx_level">
+            <option value="0" {% if not form or form.ipx_level == 0 %}selected{% endif %}>None</option>
+            {% for i in [4,5,6,7] %}
+            <option value="{{ i }}" {% if form and form.ipx_level|int == i %}selected{% endif %}>IPX{{ i }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- ANC dB -->
+        <div class="form-group">
+          <label>ANC Level (dB) — 0 if no ANC</label>
+          <input type="number" name="anc_db" min="0" max="60" step="1"
+                 value="{{ form.anc_db if form else 0 }}">
+        </div>
+
+        <!-- Reviews -->
+        <div class="form-group">
+          <label>Expected Reviews Count</label>
+          <input type="number" name="review_count" min="0" step="100"
+                 value="{{ form.review_count if form else 0 }}">
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Feature checkboxes -->
+      <div class="checks-title">Features</div>
+      <div class="checks-grid">
+        <label class="check-item">
+          <input type="checkbox" name="has_anc" value="1" {% if form and form.has_anc %}checked{% endif %}>
+          <div class="check-box"></div><span>&#x1F507; Active Noise Cancellation</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" name="has_enc" value="1" {% if form and form.has_enc %}checked{% endif %}>
+          <div class="check-box"></div><span>&#x1F399; ENC (Call Noise Cancel)</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" name="has_hi_res" value="1" {% if form and form.has_hi_res %}checked{% endif %}>
+          <div class="check-box"></div><span>&#x1F3B5; Hi-Res Audio</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" name="has_spatial" value="1" {% if form and form.has_spatial %}checked{% endif %}>
+          <div class="check-box"></div><span>&#x1F310; Spatial / 3D Audio</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" name="has_dual" value="1" {% if form and form.has_dual %}checked{% endif %}>
+          <div class="check-box"></div><span>&#x1F4F1; Dual / Multi-Point Pairing</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" name="has_codec" value="1" {% if form and form.has_codec %}checked{% endif %}>
+          <div class="check-box"></div><span>&#x26A1; Premium Codec (aptX/LDAC)</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" name="has_low_lat" value="1" {% if form and form.has_low_lat %}checked{% endif %}>
+          <div class="check-box"></div><span>&#x1F3AE; Low Latency / Gaming Mode</span>
+        </label>
+      </div>
+      <button type="submit" class="btn-submit">⚡ Predict Price</button>
+    </form>
+
+    <!-- Result -->
+    {% if result %}
+    <div class="result">
+      <div class="result-label">Recommended Market Price</div>
+      <div class="result-price">{{ result.price }}</div>
+      <div class="result-range">
+        Suggested Range: <span>{{ result.low }}</span> — <span>{{ result.high }}</span>
+      </div>
+      <div class="result-tags">
+        <span class="tag">{{ result.brand }}</span>
+        <span class="tag">{{ result.category }}</span>
+        <span class="tag">{{ result.tier }} tier</span>
+        {% if result.has_anc %}<span class="tag accent">ANC</span>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  const html   = document.documentElement;
+  const toggle = document.getElementById('themeToggle');
+  const label  = document.getElementById('themeLabel');
+
+  // Load saved preference
+  const saved = localStorage.getItem('theme') || 'dark';
+  html.setAttribute('data-theme', saved);
+  label.textContent = saved === 'dark' ? 'Dark' : 'Light';
+
+  toggle.addEventListener('click', () => {
+    const current = html.getAttribute('data-theme');
+    const next    = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    label.textContent = next === 'dark' ? 'Dark' : 'Light';
+    localStorage.setItem('theme', next);
+  });
+</script>
+
+</body>
+</html>

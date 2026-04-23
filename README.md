@@ -204,7 +204,7 @@ bluetooth-headphones-price-prediction/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/bluetooth-headphones-price-prediction.git
+git clone https://github.com/ESpoorthy/NexTune.git
 cd bluetooth-headphones-price-prediction
 ```
 

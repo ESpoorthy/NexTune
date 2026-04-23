@@ -1,206 +1,142 @@
 """
-Dataset Merger Script
-
-Combines all scraped datasets into a single unified dataset for model training.
+Dataset Merger — NexTune Price Prediction
+Combines all scraped sources into one unified dataset with 22 features.
 """
 
+import json, re, os, sys
 import pandas as pd
-import sys
-import os
 
-# Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from src.scrapers.enhanced_scraper import EnhancedScraper
 
+SCHEMA = {
+    'product_name': None, 'brand': None, 'country_of_origin': None,
+    'price_inr': None, 'rating': None, 'review_count': 0,
+    'category': 'unknown', 'source': 'unknown',
+    'battery_life_hrs': None, 'bluetooth_version': None, 'driver_size_mm': None,
+    'mic_count': None, 'anc_db': None, 'ipx_level': None, 'ipx_rating': None,
+    'charging_time_hrs': None, 'latency_ms': None, 'range_m': None, 'eq_modes': None,
+    'has_noise_cancellation': 0, 'has_enc': 0, 'has_usb_c': 0, 'has_premium_codec': 0,
+    'has_touch_control': 0, 'has_voice_assistant': 0, 'has_fast_charge': 0,
+    'has_dual_pairing': 0, 'has_gaming_mode': 0, 'has_hi_res_audio': 0,
+    'has_spatial_audio': 0, 'has_low_latency': 0,
+    'active_noise_cancellation': None,
+}
 
-def load_and_standardize_datasets():
-    """
-    Load all available datasets and standardize their formats.
-    
-    Returns:
-        List of standardized DataFrames
-    """
+def _schema(df, source):
+    for col, default in SCHEMA.items():
+        if col not in df.columns:
+            df[col] = default
+    df['source'] = source
+    return df
+
+def _num(val):
+    if not val or (isinstance(val, float) and pd.isna(val)): return None
+    m = re.search(r'(\d+(?:\.\d+)?)', str(val))
+    return float(m.group(1)) if m else None
+
+def _bt(val):
+    if not val or (isinstance(val, float) and pd.isna(val)): return None
+    m = re.search(r'([0-9]\.[0-9])', str(val))
+    return float(m.group(1)) if m else None
+
+def load_all():
     datasets = []
-    
-    # 1. Load enhanced dataset (already processed)
-    print("Loading enhanced-headphones-dataset.csv...")
-    df_enhanced = pd.read_csv('data/enhanced-headphones-dataset.csv')
-    datasets.append(df_enhanced)
-    print(f"  ✓ Loaded {len(df_enhanced)} records")
-    
-    # 2. Load nexttune cleaned data
-    print("\nLoading nexttune-cleaned-data.csv...")
-    df_nexttune = pd.read_csv('data/nexttune-cleaned-data.csv')
-    
-    # Standardize column names
-    df_nexttune_std = pd.DataFrame({
-        'product_name': df_nexttune['Name'],
-        'brand': df_nexttune['Brand'],
-        'price_inr': df_nexttune['Price'],
-        'rating': df_nexttune['Rating'],
-        'review_count': 0,  # Not available in this dataset
-        'category': 'unknown',  # Will be detected by enhanced scraper
-        'source': 'nexttune_cleaned',
-        'battery_life_hrs': None,
-        'active_noise_cancellation': None,
-        'driver_size_mm': None,
-        'bluetooth_version': None,
-        'mic_count': None,
-        'ipx_rating': None
-    })
-    
-    # Remove rows with price = 0 (invalid data)
-    df_nexttune_std = df_nexttune_std[df_nexttune_std['price_inr'] > 0]
-    
-    datasets.append(df_nexttune_std)
-    print(f"  ✓ Loaded {len(df_nexttune_std)} valid records (removed {len(df_nexttune) - len(df_nexttune_std)} with price=0)")
-    
+
+    # 1. Enhanced dataset
+    if os.path.exists('data/enhanced-headphones-dataset.csv'):
+        df = pd.read_csv('data/enhanced-headphones-dataset.csv')
+        datasets.append(_schema(df, 'enhanced_scrape'))
+        print(f"  ✓ enhanced-headphones-dataset.csv : {len(df)}")
+
+    # 2. NexTune cleaned
+    if os.path.exists('data/nexttune-cleaned-data.csv'):
+        raw = pd.read_csv('data/nexttune-cleaned-data.csv')
+        df  = pd.DataFrame({'product_name': raw['Name'], 'brand': raw['Brand'],
+                             'price_inr': raw['Price'], 'rating': raw['Rating']})
+        df  = df[df['price_inr'] > 0]
+        datasets.append(_schema(df, 'nexttune_cleaned'))
+        print(f"  ✓ nexttune-cleaned-data.csv       : {len(df)}")
+
+    # 3. earbuds_by_company.json (teammate's file — 148 products + 4 new features)
+    if os.path.exists('data/earbuds_by_company.json'):
+        data = json.load(open('data/earbuds_by_company.json'))
+        rows = []
+        for b in data:
+            for p in b['products']:
+                f = p.get('features', {})
+                rows.append({
+                    'product_name': p.get('name'), 'brand': b['brand'],
+                    'country_of_origin': b['country_of_origin'],
+                    'price_inr': p.get('price_inr'), 'rating': p.get('rating'),
+                    'review_count': p.get('review_count', 0),
+                    'battery_life_hrs': _num(f.get('battery_life')),
+                    'bluetooth_version': _bt(f.get('bluetooth_version')),
+                    'driver_size_mm': _num(f.get('driver_size')),
+                    'mic_count': f.get('microphones'),
+                    'has_noise_cancellation': 1 if f.get('noise_cancellation') else 0,
+                    'has_enc':           1 if f.get('enc') else 0,
+                    'has_touch_control': 1 if f.get('touch_controls') else 0,
+                    'has_voice_assistant':1 if f.get('voice_assistant') else 0,
+                    'has_fast_charge':   1 if f.get('fast_charging') else 0,
+                    'has_dual_pairing':  1 if f.get('multipoint_connection') else 0,
+                    'has_gaming_mode':   1 if f.get('gaming_mode') else 0,
+                    'has_hi_res_audio':  1 if f.get('hi_res_audio') else 0,
+                    'has_spatial_audio': 1 if f.get('spatial_audio') else 0,
+                    'has_low_latency':   1 if f.get('low_latency') else 0,
+                    'has_ipx':           1 if f.get('water_resistance') else 0,
+                })
+        df = pd.DataFrame(rows)
+        datasets.append(_schema(df, 'earbuds_by_company'))
+        print(f"  ✓ earbuds_by_company.json         : {len(df)}")
+
+    # 4. Raw Amazon scrape (if exists)
+    if os.path.exists('data/raw_amazon_scrape.csv'):
+        df = pd.read_csv('data/raw_amazon_scrape.csv')
+        datasets.append(_schema(df, 'amazon_scrape'))
+        print(f"  ✓ raw_amazon_scrape.csv           : {len(df)}")
+
     return datasets
 
-
-def enhance_new_data(df):
-    """
-    Apply enhanced scraping to extract features from product names.
-    
-    Args:
-        df: DataFrame with product data
-        
-    Returns:
-        Enhanced DataFrame with extracted features
-    """
-    print("\nEnhancing new data with feature extraction...")
+def enhance_new(df):
     scraper = EnhancedScraper()
-    
-    enhanced_records = []
-    for idx, row in df.iterrows():
-        # Extract features from product name
-        features = scraper.extract_with_prompt_engineering(row['product_name'])
-        
-        # Update row with extracted features
-        for key, value in features.items():
-            if key in row and (pd.isna(row[key]) or row[key] == 'unknown'):
-                row[key] = value
-        
-        # Simple category detection from product name
-        name_lower = str(row['product_name']).lower()
-        if 'tws' in name_lower or 'earbuds' in name_lower or 'earpods' in name_lower:
-            row['category'] = 'true wireless earbuds'
-        elif 'neckband' in name_lower:
-            row['category'] = 'neckband'
-        elif 'headphone' in name_lower or 'headset' in name_lower:
-            row['category'] = 'over-ear headphone'
-        
-        enhanced_records.append(row)
-    
-    df_enhanced = pd.DataFrame(enhanced_records)
-    print(f"  ✓ Enhanced {len(df_enhanced)} records")
-    
-    return df_enhanced
-
-
-def merge_datasets(datasets):
-    """
-    Merge all datasets into a single unified dataset.
-    
-    Args:
-        datasets: List of DataFrames to merge
-        
-    Returns:
-        Merged DataFrame
-    """
-    print("\nMerging datasets...")
-    
-    # Combine all datasets
-    df_merged = pd.concat(datasets, ignore_index=True)
-    
-    # Remove duplicates based on product_name
-    initial_count = len(df_merged)
-    df_merged = df_merged.drop_duplicates(subset=['product_name'], keep='first')
-    duplicates_removed = initial_count - len(df_merged)
-    
-    print(f"  ✓ Merged {len(datasets)} datasets")
-    print(f"  ✓ Total records: {len(df_merged)}")
-    print(f"  ✓ Duplicates removed: {duplicates_removed}")
-    
-    return df_merged
-
-
-def generate_summary(df):
-    """
-    Generate and display summary statistics for the merged dataset.
-    
-    Args:
-        df: Merged DataFrame
-    """
-    print("\n" + "=" * 80)
-    print("MERGED DATASET SUMMARY")
-    print("=" * 80)
-    
-    print(f"\nTotal Records: {len(df)}")
-    print(f"\nPrice Statistics:")
-    print(f"  Mean: ₹{df['price_inr'].mean():.2f}")
-    print(f"  Median: ₹{df['price_inr'].median():.2f}")
-    print(f"  Min: ₹{df['price_inr'].min():.2f}")
-    print(f"  Max: ₹{df['price_inr'].max():.2f}")
-    
-    print(f"\nRating Statistics:")
-    print(f"  Mean: {df['rating'].mean():.2f}")
-    print(f"  Min: {df['rating'].min():.2f}")
-    print(f"  Max: {df['rating'].max():.2f}")
-    
-    print(f"\nBrands: {df['brand'].nunique()} unique brands")
-    print(f"Top 10 brands:")
-    for brand, count in df['brand'].value_counts().head(10).items():
-        print(f"  {brand}: {count} products")
-    
-    print(f"\nCategories:")
-    for category, count in df['category'].value_counts().items():
-        print(f"  {category}: {count} products")
-    
-    print(f"\nData Sources:")
-    for source, count in df['source'].value_counts().items():
-        print(f"  {source}: {count} products")
-    
-    print(f"\nFeature Completeness:")
-    for col in ['battery_life_hrs', 'bluetooth_version', 'driver_size_mm', 'active_noise_cancellation']:
-        if col in df.columns:
-            completeness = (1 - df[col].isna().sum() / len(df)) * 100
-            print(f"  {col}: {completeness:.1f}%")
-    
-    print("=" * 80)
-
+    rows = []
+    for _, row in df.iterrows():
+        row   = row.copy()
+        feats = scraper.extract_with_prompt_engineering(str(row.get('product_name', '')))
+        for k, v in feats.items():
+            cur = row.get(k)
+            if cur is None or (isinstance(cur, float) and pd.isna(cur)) or cur == 'unknown' or cur == 0:
+                row[k] = v
+        rows.append(row)
+    return pd.DataFrame(rows)
 
 def main():
-    """
-    Main execution function for merging datasets.
-    """
-    print("=" * 80)
-    print("DATASET MERGER - NexTune Price Prediction")
-    print("=" * 80)
-    
-    # Load all datasets
-    datasets = load_and_standardize_datasets()
-    
-    # Enhance new data with feature extraction
-    if len(datasets) > 1:
-        datasets[1] = enhance_new_data(datasets[1])
-    
-    # Merge datasets
-    df_final = merge_datasets(datasets)
-    
-    # Generate summary
-    generate_summary(df_final)
-    
-    # Save merged dataset
-    output_file = 'data/final-merged-dataset.csv'
-    df_final.to_csv(output_file, index=False)
-    print(f"\n✅ Final merged dataset saved to: {output_file}")
-    
-    # Also update the enhanced dataset for consistency
-    df_final.to_csv('data/enhanced-headphones-dataset.csv', index=False)
-    print(f"✅ Updated enhanced-headphones-dataset.csv with merged data")
+    print("=" * 65)
+    print("DATASET MERGER — NexTune")
+    print("=" * 65)
+    print("\nLoading sources...")
+    datasets = load_all()
 
+    for i in range(1, len(datasets)):
+        datasets[i] = enhance_new(datasets[i])
+
+    df = pd.concat(datasets, ignore_index=True)
+    before = len(df)
+    df = df.drop_duplicates(subset=['product_name'], keep='first')
+    print(f"\n  Merged → {len(df)} unique records ({before-len(df)} duplicates removed)")
+
+    # Summary
+    print(f"\n  Price  : ₹{df.price_inr.min():.0f}–₹{df.price_inr.max():.0f}  (median ₹{df.price_inr.median():.0f})")
+    print(f"  Brands : {df.brand.nunique()}")
+    print(f"  Sources: {df.source.value_counts().to_dict()}")
+    if 'country_of_origin' in df.columns:
+        print(f"  Countries: {df.country_of_origin.value_counts().head(5).to_dict()}")
+
+    df.to_csv('data/final-merged-dataset.csv', index=False)
+    df.to_csv('data/enhanced-headphones-dataset.csv', index=False)
+    print("\n✅ Saved → data/final-merged-dataset.csv")
+    print("✅ Updated → data/enhanced-headphones-dataset.csv")
 
 if __name__ == "__main__":
     main()

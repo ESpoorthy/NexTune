@@ -1,8 +1,6 @@
 """
-Data Preparation Module for Bluetooth Headphones Price Prediction
-
-This module handles data loading, cleaning, feature engineering, and preprocessing
-for the price prediction model.
+Data Preparation — NexTune Price Prediction
+28 model features: 22 scraped + 6 engineered (including country_of_origin).
 """
 
 import pandas as pd
@@ -15,347 +13,150 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+MODEL_FEATURES = [
+    # Categorical encoded
+    'category_enc', 'brand_enc', 'brand_tier_enc', 'country_enc',
+    # Core scraped numerical
+    'rating', 'review_count',
+    'battery_life_hrs', 'driver_size_mm',
+    'bluetooth_version', 'bt_major',
+    'mic_count', 'anc_db', 'ipx_level',
+    'charging_time_hrs', 'latency_ms',
+    # Binary scraped (original 7)
+    'has_noise_cancellation', 'has_usb_c', 'has_premium_codec',
+    'has_touch_control', 'has_voice_assistant',
+    'has_fast_charge', 'has_dual_pairing',
+    # Binary scraped (4 new from earbuds_by_company.json)
+    'has_enc', 'has_gaming_mode', 'has_hi_res_audio',
+    'has_spatial_audio', 'has_low_latency',
+    # Engineered
+    'has_ipx', 'high_rating', 'price_per_hour',
+]
+
+CATEGORICAL = ['category', 'brand', 'brand_tier', 'country_of_origin']
+
 
 class DataPreparation:
-    """
-    Handles all data preparation tasks including:
-    - Loading data
-    - Handling missing values
-    - Removing duplicates
-    - Feature engineering
-    - Encoding categorical variables
-    - Train-test splitting
-    - Feature scaling
-    """
-    
     def __init__(self):
         self.label_encoders: Dict[str, LabelEncoder] = {}
-        self.scaler: StandardScaler = StandardScaler()
-        self.feature_columns: List[str] = []
-        self.target_column: str = 'price_inr'
-        
+        self.scaler = StandardScaler()
+        self.feature_columns = MODEL_FEATURES
+        self.target_column   = 'price_inr'
+
     def load_data(self, filepath: str) -> pd.DataFrame:
-        """
-        Load dataset from CSV file.
-        
-        Args:
-            filepath: Path to the CSV file
-            
-        Returns:
-            DataFrame with loaded data
-        """
-        logger.info(f"Loading data from {filepath}")
         df = pd.read_csv(filepath)
-        logger.info(f"Loaded {len(df)} records with {len(df.columns)} columns")
+        logger.info(f"Loaded {len(df)} rows, {len(df.columns)} cols from {filepath}")
         return df
-    
+
     def handle_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Handle missing values using appropriate strategies:
-        - Drop rows with missing price or brand (critical features)
-        - Impute battery_life with median by category
-        - Impute bluetooth_version with mode
-        - Impute driver_size with median by category
-        - Fill rating with median
-        - Fill review_count with 0
-        - Fill active_noise_cancellation with 0
-        - Fill mic_count with 2 (standard)
-        
-        Args:
-            df: Input DataFrame
-            
-        Returns:
-            DataFrame with missing values handled
-        """
-        logger.info("Handling missing values")
-        df_clean = df.copy()
-        
-        # Drop rows with missing critical features
-        initial_count = len(df_clean)
-        df_clean = df_clean.dropna(subset=['price_inr', 'brand'])
-        logger.info(f"Removed {initial_count - len(df_clean)} rows with missing price/brand")
-        
-        # Impute numerical features
-        if 'battery_life_hrs' in df_clean.columns:
-            df_clean['battery_life_hrs'] = df_clean.groupby('category')['battery_life_hrs'].transform(
-                lambda x: x.fillna(x.median())
-            )
-        
-        if 'bluetooth_version' in df_clean.columns:
-            mode_value = df_clean['bluetooth_version'].mode()
-            if len(mode_value) > 0:
-                df_clean['bluetooth_version'] = df_clean['bluetooth_version'].fillna(mode_value[0])
-        
-        if 'driver_size_mm' in df_clean.columns:
-            df_clean['driver_size_mm'] = df_clean.groupby('category')['driver_size_mm'].transform(
-                lambda x: x.fillna(x.median())
-            )
-        
-        if 'rating' in df_clean.columns:
-            df_clean['rating'] = df_clean['rating'].fillna(df_clean['rating'].median())
-        
-        if 'review_count' in df_clean.columns:
-            df_clean['review_count'] = df_clean['review_count'].fillna(0)
-        
-        if 'active_noise_cancellation' in df_clean.columns:
-            df_clean['active_noise_cancellation'] = df_clean['active_noise_cancellation'].fillna(0)
-        
-        if 'mic_count' in df_clean.columns:
-            df_clean['mic_count'] = df_clean['mic_count'].fillna(2)
-        
-        logger.info("Missing values handled successfully")
-        return df_clean
-    
+        df = df.copy()
+        before = len(df)
+        df = df.dropna(subset=['price_inr', 'brand'])
+        df = df[df['price_inr'] > 0]
+        logger.info(f"Dropped {before-len(df)} rows (missing price/brand)")
+
+        for col in ['battery_life_hrs', 'driver_size_mm']:
+            if col in df.columns:
+                df[col] = df.groupby('category')[col].transform(lambda x: x.fillna(x.median()))
+
+        if 'bluetooth_version' in df.columns:
+            mode = df['bluetooth_version'].mode()
+            df['bluetooth_version'] = df['bluetooth_version'].fillna(mode[0] if len(mode) else 5.0)
+
+        for col in ['mic_count','anc_db','ipx_level','charging_time_hrs','latency_ms','range_m','eq_modes']:
+            if col in df.columns: df[col] = df[col].fillna(0)
+
+        if 'rating'       in df.columns: df['rating']       = df['rating'].fillna(df['rating'].median())
+        if 'review_count' in df.columns: df['review_count'] = df['review_count'].fillna(0)
+
+        binary_cols = ['has_noise_cancellation','has_enc','has_usb_c','has_premium_codec',
+                       'has_touch_control','has_voice_assistant','has_fast_charge','has_dual_pairing',
+                       'has_gaming_mode','has_hi_res_audio','has_spatial_audio','has_low_latency',
+                       'active_noise_cancellation']
+        for col in binary_cols:
+            if col in df.columns: df[col] = df[col].fillna(0)
+
+        return df
+
     def remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Remove duplicate records based on product_name.
-        
-        Args:
-            df: Input DataFrame
-            
-        Returns:
-            DataFrame with duplicates removed
-        """
-        logger.info("Removing duplicates")
-        initial_count = len(df)
-        df_clean = df.drop_duplicates(subset=['product_name'], keep='first')
-        logger.info(f"Removed {initial_count - len(df_clean)} duplicate records")
-        return df_clean
-    
+        before = len(df)
+        df = df.drop_duplicates(subset=['product_name'], keep='first')
+        logger.info(f"Removed {before-len(df)} duplicates")
+        return df
+
     def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Create new features from existing ones:
-        - has_noise_cancellation: Binary indicator for ANC
-        - price_per_hour: Price divided by battery life
-        - brand_tier: Categorize brands as budget/mid/premium
-        - bluetooth_major_version: Extract major version number
-        - high_rating: Binary indicator for rating >= 4.0
-        - has_ipx_rating: Binary indicator for water resistance
-        
-        Args:
-            df: Input DataFrame
-            
-        Returns:
-            DataFrame with engineered features
-        """
-        logger.info("Engineering features")
-        df_eng = df.copy()
-        
-        # has_noise_cancellation
-        if 'active_noise_cancellation' in df_eng.columns:
-            df_eng['has_noise_cancellation'] = (df_eng['active_noise_cancellation'] == 1).astype(int)
-        
-        # price_per_hour
-        if 'battery_life_hrs' in df_eng.columns:
-            df_eng['price_per_hour'] = df_eng['price_inr'] / (df_eng['battery_life_hrs'] + 1)
-        
-        # brand_tier
-        if 'brand' in df_eng.columns:
-            brand_avg_price = df_eng.groupby('brand')['price_inr'].mean()
-            
-            def categorize_brand(brand):
-                if brand not in brand_avg_price:
-                    return 'mid'
-                avg_price = brand_avg_price[brand]
-                if avg_price >= 10000:
-                    return 'premium'
-                elif avg_price >= 3000:
-                    return 'mid'
-                else:
-                    return 'budget'
-            
-            df_eng['brand_tier'] = df_eng['brand'].apply(categorize_brand)
-        
-        # bluetooth_major_version
-        if 'bluetooth_version' in df_eng.columns:
-            df_eng['bluetooth_major_version'] = df_eng['bluetooth_version'].apply(
-                lambda x: int(x) if pd.notna(x) else 5
-            )
-        
-        # high_rating
-        if 'rating' in df_eng.columns:
-            df_eng['high_rating'] = (df_eng['rating'] >= 4.0).astype(int)
-        
-        # has_ipx_rating
-        if 'ipx_rating' in df_eng.columns:
-            df_eng['has_ipx_rating'] = df_eng['ipx_rating'].notna().astype(int)
-        
-        logger.info(f"Created {6} new features")
-        return df_eng
-    
-    def encode_categorical(self, df: pd.DataFrame, fit: bool = True) -> pd.DataFrame:
-        """
-        Encode categorical features using LabelEncoder.
-        
-        Args:
-            df: Input DataFrame
-            fit: Whether to fit new encoders (True for training, False for inference)
-            
-        Returns:
-            DataFrame with encoded categorical features
-        """
-        logger.info("Encoding categorical features")
-        df_enc = df.copy()
-        
-        categorical_features = ['category', 'brand', 'brand_tier']
-        
-        for feature in categorical_features:
-            if feature in df_enc.columns:
-                if fit:
-                    le = LabelEncoder()
-                    df_enc[f'{feature}_encoded'] = le.fit_transform(df_enc[feature])
-                    self.label_encoders[feature] = le
-                else:
-                    if feature in self.label_encoders:
-                        le = self.label_encoders[feature]
-                        # Handle unseen labels
-                        df_enc[f'{feature}_encoded'] = df_enc[feature].apply(
-                            lambda x: le.transform([x])[0] if x in le.classes_ else -1
-                        )
-        
-        logger.info(f"Encoded {len(categorical_features)} categorical features")
-        return df_enc
-    
-    def normalize_numerical(self, X: np.ndarray, fit: bool = True) -> np.ndarray:
-        """
-        Normalize numerical features using StandardScaler.
-        
-        Args:
-            X: Feature matrix
-            fit: Whether to fit the scaler (True for training, False for inference)
-            
-        Returns:
-            Normalized feature matrix
-        """
-        logger.info("Normalizing numerical features")
-        if fit:
-            X_scaled = self.scaler.fit_transform(X)
-        else:
-            X_scaled = self.scaler.transform(X)
-        
-        logger.info(f"Normalized features - Mean: {X_scaled.mean():.4f}, Std: {X_scaled.std():.4f}")
-        return X_scaled
-    
-    def create_train_test_split(
-        self, 
-        X: pd.DataFrame, 
-        y: pd.Series, 
-        test_size: float = 0.2, 
-        random_state: int = 42
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-        """
-        Split data into training and test sets.
-        
-        Args:
-            X: Feature matrix
-            y: Target vector
-            test_size: Proportion of data for test set (default: 0.2)
-            random_state: Random seed for reproducibility
-            
-        Returns:
-            Tuple of (X_train, X_test, y_train, y_test)
-        """
-        logger.info(f"Creating train-test split with test_size={test_size}")
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=random_state
+        df = df.copy()
+
+        # has_anc — unify both ANC columns
+        anc_cols = [c for c in ['has_noise_cancellation','active_noise_cancellation'] if c in df.columns]
+        df['has_anc'] = df[anc_cols].max(axis=1).fillna(0).astype(int) if anc_cols else 0
+
+        df['has_ipx']        = (df['ipx_level'].fillna(0) > 0).astype(int) if 'ipx_level' in df.columns else 0
+        df['price_per_hour'] = df['price_inr'] / (df['battery_life_hrs'].fillna(0) + 1)
+        df['bt_major']       = df['bluetooth_version'].apply(lambda x: int(x) if pd.notna(x) else 5) \
+                               if 'bluetooth_version' in df.columns else 5
+        df['high_rating']    = (df['rating'] >= 4.0).astype(int) if 'rating' in df.columns else 0
+
+        brand_avg = df.groupby('brand')['price_inr'].mean()
+        df['brand_tier'] = df['brand'].apply(
+            lambda b: 'premium' if brand_avg.get(b,0) >= 10000 else ('mid' if brand_avg.get(b,0) >= 3000 else 'budget')
         )
-        
-        logger.info(f"Training set: {len(X_train)} samples ({len(X_train)/len(X)*100:.1f}%)")
-        logger.info(f"Test set: {len(X_test)} samples ({len(X_test)/len(X)*100:.1f}%)")
-        
-        return X_train, X_test, y_train, y_test
-    
+
+        # Fill new binary columns
+        for col in ['has_enc','has_gaming_mode','has_hi_res_audio','has_spatial_audio','has_low_latency']:
+            if col not in df.columns: df[col] = 0
+            else: df[col] = df[col].fillna(0).astype(int)
+
+        return df
+
+    def encode_categorical(self, df: pd.DataFrame, fit: bool = True) -> pd.DataFrame:
+        df = df.copy()
+        col_map = {
+            'category':         'category_enc',
+            'brand':            'brand_enc',
+            'brand_tier':       'brand_tier_enc',
+            'country_of_origin':'country_enc',
+        }
+        for col, enc_col in col_map.items():
+            if col not in df.columns:
+                df[enc_col] = 0
+                continue
+            if fit:
+                le = LabelEncoder()
+                df[enc_col] = le.fit_transform(df[col].fillna('Unknown').astype(str))
+                self.label_encoders[col] = le
+            else:
+                if col in self.label_encoders:
+                    le = self.label_encoders[col]
+                    df[enc_col] = df[col].apply(
+                        lambda x: le.transform([x])[0] if x in le.classes_ else 0
+                    )
+        return df
+
     def prepare_features(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Prepare feature matrix and target vector for modeling.
-        
-        Args:
-            df: Input DataFrame with all features
-            
-        Returns:
-            Tuple of (X, y) where X is feature matrix and y is target vector
-        """
-        self.feature_columns = [
-            'category_encoded',
-            'brand_encoded',
-            'brand_tier_encoded',
-            'rating',
-            'review_count',
-            'battery_life_hrs',
-            'driver_size_mm',
-            'bluetooth_version',
-            'bluetooth_major_version',
-            'mic_count',
-            'has_noise_cancellation',
-            'has_ipx_rating',
-            'high_rating',
-            'price_per_hour'
-        ]
-        
-        X = df[self.feature_columns]
+        for col in MODEL_FEATURES:
+            if col not in df.columns: df[col] = 0
+        X = df[MODEL_FEATURES].fillna(0)
         y = df[self.target_column]
-        
-        logger.info(f"Prepared features: {X.shape}, target: {y.shape}")
+        logger.info(f"Feature matrix: {X.shape}")
         return X, y
-    
-    def full_pipeline(
-        self, 
-        filepath: str, 
-        test_size: float = 0.2
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Execute the complete data preparation pipeline.
-        
-        Args:
-            filepath: Path to the raw data CSV
-            test_size: Proportion of data for test set
-            
-        Returns:
-            Tuple of (X_train_scaled, X_test_scaled, y_train, y_test)
-        """
-        logger.info("=" * 80)
-        logger.info("STARTING FULL DATA PREPARATION PIPELINE")
-        logger.info("=" * 80)
-        
-        # Load data
+
+    def full_pipeline(self, filepath: str, test_size: float = 0.2):
         df = self.load_data(filepath)
-        
-        # Clean data
         df = self.handle_missing_values(df)
         df = self.remove_duplicates(df)
-        
-        # Engineer features
         df = self.engineer_features(df)
-        
-        # Encode categorical features
         df = self.encode_categorical(df, fit=True)
-        
-        # Prepare features
         X, y = self.prepare_features(df)
-        
-        # Train-test split
-        X_train, X_test, y_train, y_test = self.create_train_test_split(X, y, test_size)
-        
-        # Normalize features
-        X_train_scaled = self.normalize_numerical(X_train, fit=True)
-        X_test_scaled = self.normalize_numerical(X_test, fit=False)
-        
-        logger.info("=" * 80)
-        logger.info("DATA PREPARATION PIPELINE COMPLETED")
-        logger.info("=" * 80)
-        
-        return X_train_scaled, X_test_scaled, y_train.values, y_test.values
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+        X_train_sc = self.scaler.fit_transform(X_train)
+        X_test_sc  = self.scaler.transform(X_test)
+        logger.info(f"Train: {len(X_train)}  Test: {len(X_test)}")
+        return X_train_sc, X_test_sc, y_train.values, y_test.values
 
 
 if __name__ == "__main__":
-    # Example usage
     prep = DataPreparation()
-    X_train, X_test, y_train, y_test = prep.full_pipeline(
-        filepath='data/enhanced-headphones-dataset.csv'
-    )
-    
-    print(f"\nPipeline Results:")
-    print(f"  X_train shape: {X_train.shape}")
-    print(f"  X_test shape: {X_test.shape}")
-    print(f"  y_train shape: {y_train.shape}")
-    print(f"  y_test shape: {y_test.shape}")
+    X_tr, X_te, y_tr, y_te = prep.full_pipeline('data/enhanced-headphones-dataset.csv')
+    print(f"X_train: {X_tr.shape}  X_test: {X_te.shape}")
+    print(f"Features ({len(MODEL_FEATURES)}): {MODEL_FEATURES}")

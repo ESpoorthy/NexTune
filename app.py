@@ -120,6 +120,8 @@ defaults = {
     "anc": False, "bt_version": 5.3, "driver_mm": 10, "has_enc": False,
     "has_hi_res": False, "has_spatial": False, "has_dual": False,
     "has_codec": False, "has_low_lat": False, "ipx_level": 0, "anc_db": 0,
+    "has_touch": False, "has_voice": False, "has_fast_charge": False,
+    "has_foldable": False, "battery_hrs": 30,
     "result": None, "tier": None, "err": None,
 }
 for k, v in defaults.items():
@@ -274,19 +276,25 @@ with col_left:
                               options=[0, 4, 5, 6, 7],
                               format_func=lambda x: "None" if x == 0 else f"IPX{x}")
 
+    battery_hrs = st.slider("🔋 Battery Life (hours)", min_value=5, max_value=200,
+                             value=int(st.session_state.get("battery_hrs", 30)), step=5)
+
     # Features section
     st.markdown(f'<div class="sec-label">Features</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        has_anc     = st.toggle("🔇 ANC",              value=bool(st.session_state["anc"]))
-        has_enc     = st.toggle("🎙️ ENC",              value=bool(st.session_state["has_enc"]))
-        has_hi_res  = st.toggle("🎵 Hi-Res Audio",     value=bool(st.session_state["has_hi_res"]))
-        has_spatial = st.toggle("🌐 Spatial Audio",    value=bool(st.session_state["has_spatial"]))
+        has_anc     = st.toggle("🔇 ANC",                value=bool(st.session_state["anc"]))
+        has_enc     = st.toggle("🎙️ ENC",                value=bool(st.session_state["has_enc"]))
+        has_hi_res  = st.toggle("🎵 Hi-Res Audio",       value=bool(st.session_state["has_hi_res"]))
+        has_spatial = st.toggle("🌐 Spatial Audio",      value=bool(st.session_state["has_spatial"]))
+        has_voice   = st.toggle("🗣️ Voice Assistant",    value=bool(st.session_state.get("has_voice", False)))
     with c2:
-        has_dual    = st.toggle("📱 Dual Pairing",     value=bool(st.session_state["has_dual"]))
-        has_codec   = st.toggle("⚡ Premium Codec",    value=bool(st.session_state["has_codec"]))
-        has_low_lat = st.toggle("🎮 Low Latency",      value=bool(st.session_state["has_low_lat"]))
-        has_touch   = st.toggle("👆 Smart Touch",      value=bool(st.session_state.get("has_touch", False)))
+        has_dual        = st.toggle("📱 Dual Pairing",       value=bool(st.session_state["has_dual"]))
+        has_codec       = st.toggle("⚡ Premium Codec",      value=bool(st.session_state["has_codec"]))
+        has_low_lat     = st.toggle("🎮 Low Latency",        value=bool(st.session_state["has_low_lat"]))
+        has_touch       = st.toggle("👆 Smart Touch",        value=bool(st.session_state.get("has_touch", False)))
+        has_fast_charge = st.toggle("🔌 Fast Charging",      value=bool(st.session_state.get("has_fast_charge", False)))
+        has_foldable    = st.toggle("📦 Foldable Design",    value=bool(st.session_state.get("has_foldable", False)))
 
     anc_db = 0
     if has_anc:
@@ -307,7 +315,9 @@ with col_right:
             "anc": has_anc, "bt_version": bt_version, "driver_mm": driver_mm,
             "has_enc": has_enc, "has_hi_res": has_hi_res, "has_spatial": has_spatial,
             "has_dual": has_dual, "has_codec": has_codec, "has_low_lat": has_low_lat,
-            "ipx_level": ipx_level, "anc_db": anc_db,
+            "ipx_level": ipx_level, "anc_db": anc_db, "battery_hrs": battery_hrs,
+            "has_touch": has_touch, "has_voice": has_voice,
+            "has_fast_charge": has_fast_charge, "has_foldable": has_foldable,
         })
         if model:
             with st.spinner("Analyzing..."):
@@ -370,6 +380,40 @@ with col_right:
     <div style="font-size:.62rem;color:{FAINT};text-transform:uppercase;letter-spacing:.07em;">Touch</div>
     <div style="font-size:.85rem;font-weight:700;color:{TEXT};margin-top:.15rem;">{"✅ Yes" if st.session_state.get("has_touch") else "❌ No"}</div>
   </div>
+</div>""", unsafe_allow_html=True)
+
+        # ── Battery description ──────────────────────────────────────────────
+        batt = st.session_state.get("battery_hrs", 30)
+        ipx  = st.session_state.get("ipx_level", 0)
+        fc   = st.session_state.get("has_fast_charge", False)
+
+        if batt <= 15:
+            batt_icon, batt_label, batt_color = "🔴", "Low Battery Life", "#ef4444"
+            batt_desc = f"Only {batt}h playtime — suitable for short commutes. Charge frequently."
+        elif batt <= 30:
+            batt_icon, batt_label, batt_color = "🟡", "Average Battery Life", "#f59e0b"
+            batt_desc = f"{batt}h playtime — good for daily use. Charges every 1–2 days."
+        elif batt <= 60:
+            batt_icon, batt_label, batt_color = "🟢", "Good Battery Life", "#22c55e"
+            batt_desc = f"{batt}h playtime — excellent for all-day use. Charges every 2–3 days."
+        elif batt <= 100:
+            batt_icon, batt_label, batt_color = "💚", "Long Battery Life", "#10b981"
+            batt_desc = f"{batt}h playtime — great for travel & extended sessions. Rarely needs charging."
+        else:
+            batt_icon, batt_label, batt_color = "⚡", "Ultra-Long Battery Life", "#6366f1"
+            batt_desc = f"{batt}h playtime — exceptional endurance. Ideal for frequent travellers."
+
+        fc_note = " Fast charging supported — 10 min charge = ~2h playback." if fc else ""
+        waterproof_note = f" IPX{ipx} rated — {'splash proof' if ipx == 4 else 'sweat & rain resistant' if ipx == 5 else 'water resistant' if ipx == 6 else 'waterproof' if ipx >= 7 else ''}." if ipx > 0 else ""
+
+        st.markdown(f"""
+<div style="margin-top:1rem;background:{STAT_BG};border:1px solid {batt_color}44;border-radius:12px;padding:14px 16px;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    <span style="font-size:1.2rem;">{batt_icon}</span>
+    <span style="font-size:.8rem;font-weight:700;color:{batt_color};text-transform:uppercase;letter-spacing:.08em;">{batt_label}</span>
+    <span style="margin-left:auto;font-size:.85rem;font-weight:700;color:{batt_color};">{batt}h</span>
+  </div>
+  <div style="font-size:.82rem;color:{MUTED};line-height:1.6;">{batt_desc}{fc_note}{waterproof_note}</div>
 </div>""", unsafe_allow_html=True)
 
     else:

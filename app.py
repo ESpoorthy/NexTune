@@ -302,6 +302,7 @@ with col_left:
         has_touch       = st.toggle("👆 Smart Touch",        value=bool(st.session_state.get("has_touch", False)))
         has_fast_charge = st.toggle("🔌 Fast Charging",      value=bool(st.session_state.get("has_fast_charge", False)))
         has_foldable    = st.toggle("📦 Foldable Design",    value=bool(st.session_state.get("has_foldable", False)))
+        has_waterproof  = st.toggle("🌊 Waterproof",         value=bool(st.session_state.get("has_waterproof", False)))
 
     anc_db = 0
     if has_anc:
@@ -325,6 +326,7 @@ with col_right:
             "ipx_level": ipx_level, "anc_db": anc_db, "battery_hrs": battery_hrs,
             "has_touch": has_touch, "has_voice": has_voice,
             "has_fast_charge": has_fast_charge, "has_foldable": has_foldable,
+            "has_waterproof": has_waterproof,
         })
         if model:
             with st.spinner("Analyzing..."):
@@ -412,6 +414,8 @@ with col_right:
 
         fc_note = " Fast charging supported — 10 min charge = ~2h playback." if fc else ""
         waterproof_note = f" IPX{ipx} rated — {'splash proof' if ipx == 4 else 'sweat & rain resistant' if ipx == 5 else 'water resistant' if ipx == 6 else 'waterproof' if ipx >= 7 else ''}." if ipx > 0 else ""
+        if st.session_state.get("has_waterproof") and ipx == 0:
+            waterproof_note = " 🌊 Waterproof — safe for rain, sweat & splashes."
 
         st.markdown(f"""
 <div style="margin-top:1rem;background:{STAT_BG};border:1px solid {batt_color}44;border-radius:12px;padding:14px 16px;">

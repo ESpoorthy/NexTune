@@ -6,7 +6,7 @@ This implementation plan breaks down the Bluetooth Headphones Price Prediction S
 
 ## Tasks
 
-- [ ] 1. Set up project structure and dependencies
+ 1. Set up project structure and dependencies
   - Create directory structure: `src/`, `tests/`, `data/`, `models/`, `notebooks/`
   - Create `requirements.txt` with all dependencies (beautifulsoup4, selenium, pandas, scikit-learn, fastapi, uvicorn, hypothesis, pytest)
   - Create `README.md` with project overview and setup instructions

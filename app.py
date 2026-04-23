@@ -260,10 +260,28 @@ with col_left:
         rc = "#86efac"   # light green
     else:
         rc = "#16a34a"   # dark green
+
     st.markdown(f"""<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.7rem;margin-bottom:.15rem;">
   <span style="font-size:.78rem;font-weight:600;color:{MUTED};text-transform:uppercase;letter-spacing:.07em;">⭐ Rating</span>
   <span style="font-size:.9rem;font-weight:700;color:{rc};">{r:.1f} / 5.0</span>
 </div>""", unsafe_allow_html=True)
+
+    # Inject CSS to colour the slider TRACK and THUMB dynamically
+    st.markdown(f"""<style>
+[data-testid="stSlider"] div[data-baseweb="slider"] div[role="slider"] {{
+    background:{rc} !important;
+    border-color:{rc} !important;
+    box-shadow: 0 0 8px {rc}88 !important;
+}}
+[data-testid="stSlider"] div[data-baseweb="slider"] div[data-testid="stThumbValue"] {{
+    color:{rc} !important;
+    background:{INPUT_BG} !important;
+    border:1px solid {rc} !important;
+}}
+[data-testid="stSlider"] div[data-baseweb="slider"] > div:first-child > div:first-child {{
+    background: linear-gradient(to right, {rc}, {rc}) !important;
+}}
+</style>""", unsafe_allow_html=True)
     rating = st.slider("rating_sl", 1.0, 5.0, value=float(st.session_state["rating"]),
                        step=0.1, label_visibility="collapsed")
     st.session_state["rating"] = rating

@@ -252,7 +252,14 @@ with col_left:
 
     # Rating slider
     r = st.session_state["rating"]
-    rc = "#ef4444" if r <= 2.0 else ("#f59e0b" if r < 4.0 else "#22c55e")
+    if r <= 2.0:
+        rc = "#ef4444"   # red
+    elif r <= 3.0:
+        rc = "#f59e0b"   # yellow
+    elif r <= 4.0:
+        rc = "#86efac"   # light green
+    else:
+        rc = "#16a34a"   # dark green
     st.markdown(f"""<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.7rem;margin-bottom:.15rem;">
   <span style="font-size:.78rem;font-weight:600;color:{MUTED};text-transform:uppercase;letter-spacing:.07em;">⭐ Rating</span>
   <span style="font-size:.9rem;font-weight:700;color:{rc};">{r:.1f} / 5.0</span>

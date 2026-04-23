@@ -35,12 +35,19 @@ env/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Models
-models/*.pkl
+# Models (keep small artifacts, ignore large .pkl if >10MB)
 models/*.joblib
 
-# Data (keep structure, ignore large files)
-data/*.csv
+# Data (keep final datasets, ignore raw scrapes)
+data/headphones-raw.csv
+data/indian-wireless-headphones-scraped-data.csv
+data/amazon-earphones-market-data.csv
+data/combined-headphones-dataset.csv
+data/nexttune-cleaned-data.csv
+!data/final-merged-dataset.csv
+!data/enhanced-headphones-dataset.csv
+!data/earbuds_by_company.csv
+!data/earbuds_by_company.json
 !data/.gitkeep
 
 # Logs

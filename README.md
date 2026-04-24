@@ -5,7 +5,6 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 
 ---
 
@@ -35,7 +34,6 @@ NexTune helps price new Bluetooth headphones in the competitive Indian e-commerc
 - 📊 Comprehensive exploratory data analysis
 - 🤖 Gradient Boosting price prediction — R² ≈ 0.80, MAPE ≈ 17.6%
 - 🎨 Interactive Streamlit web app with dark/light theme
-- 🚀 FastAPI web interface for form-based predictions
 - ✅ Property-based testing with Hypothesis
 
 ---
@@ -70,9 +68,8 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
 - **Model**: Gradient Boosting Regressor (log-transformed target)
 - **Artifacts**: `price_predictor.pkl`, `scaler.pkl`, `label_encoders.pkl`, `features.pkl`, `brand_avg.pkl`, `brands.json`
 
-### 🌐 Web Apps
+### 🌐 Web App
 - **Streamlit App** (`app.py`): Full-featured interactive UI with dark/light theme, brand selector, feature toggles, battery life analysis, and price segment badges
-- **FastAPI App** (`src/api/app.py`): Lightweight HTML form-based predictor served via Jinja2 templates
 
 ---
 
@@ -111,11 +108,7 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
                          ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    DEPLOYMENT LAYER                             │
-│  ┌──────────────────────────┐  ┌──────────────────────────┐   │
-│  │   Streamlit App          │  │   FastAPI App            │   │
-│  │   app.py                 │  │   src/api/app.py         │   │
-│  │   localhost:8501         │  │   localhost:8000         │   │
-│  └──────────────────────────┘  └──────────────────────────┘   │
+│         Streamlit App · app.py · localhost:8501                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -130,7 +123,6 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
 | **Visualization** | Matplotlib, Seaborn | EDA and insights generation |
 | **Machine Learning** | Scikit-learn (GradientBoostingRegressor) | Model training and evaluation |
 | **Streamlit App** | Streamlit | Interactive web UI with theming |
-| **FastAPI App** | FastAPI + Jinja2 + Uvicorn | Lightweight form-based web predictor |
 | **Testing** | Pytest, Hypothesis | Unit and property-based testing |
 | **Serialization** | Joblib | Model artifact persistence |
 
@@ -165,13 +157,8 @@ NexTune/
 │   ├── eda_notebook.ipynb              # Exploratory data analysis
 │   └── model_training.ipynb           # Model training pipeline
 ├── scripts/
-│   ├── merge_datasets.py               # Dataset merging utility
-│   └── run_app.py                      # FastAPI app launcher
+│   └── merge_datasets.py               # Dataset merging utility
 ├── src/
-│   ├── api/
-│   │   ├── app.py                      # FastAPI application
-│   │   ├── templates/index.html        # Jinja2 HTML template
-│   │   └── static/bg.svg               # Static assets
 │   ├── data/
 │   │   └── preparation.py              # Data cleaning & preprocessing
 │   └── scrapers/
@@ -223,27 +210,19 @@ sudo apt-get install chromium-chromedriver
 
 ## 📖 Usage
 
-### 1. Run the Streamlit App (Recommended)
+### Run the App
 
 ```bash
 streamlit run app.py
 ```
 
-Open `http://localhost:8501` in your browser. The app lets you:
+Open `http://localhost:8501`. The app lets you:
 - Select a brand and headphone category
 - Set rating, review count, Bluetooth version, driver size
 - Toggle features: ANC, ENC, Hi-Res Audio, Spatial Audio, Dual Pairing, Premium Codec, Low Latency, IPX rating, Fast Charging, etc.
 - Get an instant predicted price with a ±10% suggested range and segment badge
 
-### 2. Run the FastAPI App
-
-```bash
-python scripts/run_app.py
-```
-
-Open `http://localhost:8000` — a lightweight HTML form for quick predictions.
-
-### 3. Data Collection
+### Data Collection
 
 ```bash
 # Basic scraping
@@ -253,11 +232,11 @@ python src/scrapers/amazon_scraper.py
 python src/scrapers/enhanced_scraper.py
 ```
 
-### 4. Model Training
+### Model Training
 
 Open and run `notebooks/model_training.ipynb` in Jupyter or Google Colab. This trains the Gradient Boosting model and saves all artifacts to `models/`.
 
-### 5. Exploratory Data Analysis
+### Exploratory Data Analysis
 
 ```bash
 jupyter notebook notebooks/eda_notebook.ipynb

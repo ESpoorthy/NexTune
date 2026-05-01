@@ -151,23 +151,19 @@ STAT_BG     = "rgba(13,21,38,.7)"  if is_dark else "rgba(241,245,249,.9)"
 FOOTER_COL  = "#334155"            if is_dark else "#64748b"
 IDLE_P      = "#475569"            if is_dark else "#64748b"
 
-bg_css = f"background-image:url('data:image/jpg;base64,{bg}');background-size:cover;background-position:center top;background-attachment:fixed;" if bg else ""
+bg_css = f"background-image:url('data:image/jpg;base64,{bg}');background-size:cover;background-position:center top;background-attachment:scroll;" if bg else ""
 
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{{font-family:'Inter',sans-serif;box-sizing:border-box;}}
-html, body {{overflow:auto !important; height:auto !important;}}
-[data-testid="stAppViewContainer"] {{overflow:auto !important; height:auto !important;}}
-[data-testid="stMain"] {{overflow:visible !important;}}
-.main .block-container {{overflow:visible !important;}}
 .stApp{{background-color:{APP_BG};color:{TEXT};{bg_css}}}
 .stApp::before{{content:'';position:fixed;inset:0;background:{OVERLAY};z-index:0;pointer-events:none;}}
 .stApp>*{{position:relative;z-index:1;}}
 [data-testid="stSidebar"]{{position:relative;z-index:100!important;}}
 header[data-testid="stHeader"],footer{{display:none!important;}}
 .block-container{{padding:1.8rem 2rem 1rem!important;max-width:100%!important;}}
-/* Hide the floating tooltip box on sliders, show value inline only */
+/* Hide slider tooltip box */
 [data-testid="stSlider"] div[data-testid="stThumbValue"] {{display:none !important;}}
 [data-testid="stSlider"] div[data-baseweb="tooltip"] {{display:none !important;}}
 .hero{{background:{HERO_BG};border:1px solid {HERO_BORDER};border-radius:16px;padding:2rem;text-align:center;margin-bottom:1.5rem;box-shadow:0 0 40px rgba(99,102,241,.15);}}

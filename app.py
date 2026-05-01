@@ -171,13 +171,16 @@ st.markdown(f"""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{{font-family:'Inter',sans-serif;box-sizing:border-box;}}
 html, body {{height:100%; overflow:auto;}}
+/* Force scrollbar to always show on the right */
+html {{overflow-y:scroll !important;}}
+body {{overflow-y:scroll !important;}}
 .stApp{{background-color:{APP_BG};color:{TEXT};{bg_css}min-height:100vh;}}
 .stApp::before{{content:'';position:absolute;inset:0;background:{OVERLAY};z-index:0;pointer-events:none;}}
 .stApp>*{{position:relative;z-index:1;}}
 [data-testid="stSidebar"]{{position:sticky;top:0;z-index:100!important;height:100vh;overflow-y:auto;}}
-section[data-testid="stMain"]{{min-height:100vh;overflow-y:auto!important;height:100vh!important;}}
+section[data-testid="stMain"]{{min-height:150vh;overflow-y:auto!important;height:100vh!important;}}
 header[data-testid="stHeader"],footer{{display:none!important;}}
-.block-container{{padding:1.8rem 2rem 3rem!important;max-width:100%!important;}}
+.block-container{{padding:1.8rem 2rem 3rem!important;max-width:100%!important;min-height:120vh!important;}}
 /* Hide slider tooltip box */
 [data-testid="stSlider"] div[data-testid="stThumbValue"] {{display:none !important;}}
 [data-testid="stSlider"] div[data-baseweb="tooltip"] {{display:none !important;}}

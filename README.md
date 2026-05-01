@@ -174,7 +174,8 @@ NexTune/
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- **Python 3.8 or higher** (tested with Python 3.14)
+- **VS Code** (recommended) with Python extension
 - Chrome/Chromium browser (for Selenium scraper)
 - ChromeDriver matching your Chrome version
 
@@ -186,18 +187,44 @@ git clone https://github.com/ESpoorthy/NexTune.git
 cd NexTune
 ```
 
-2. **Create virtual environment**
+2. **Open in VS Code**
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+code .
 ```
 
-3. **Install dependencies**
+3. **Create virtual environment**
+```bash
+python3 -m venv .venv
+```
+
+4. **Activate virtual environment**
+```bash
+# macOS/Linux
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
+5. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Install ChromeDriver** (for enhanced scraper only)
+6. **Retrain the model** (required for first-time setup or after scikit-learn version changes)
+```bash
+python3 scripts/retrain_model.py
+```
+
+This will generate all required model files in the `models/` directory:
+- `price_predictor.pkl` - Trained Gradient Boosting model
+- `scaler.pkl` - Feature scaler
+- `label_encoders.pkl` - Categorical encoders
+- `features.pkl` - Feature list
+- `brand_avg.pkl` - Brand average prices
+- `brands.json` - Available brands
+
+7. **Install ChromeDriver** (optional - only needed for enhanced scraper)
 ```bash
 # macOS
 brew install chromedriver
@@ -210,17 +237,63 @@ sudo apt-get install chromium-chromedriver
 
 ## 📖 Usage
 
-### Run the App
+### Run the App from VS Code
 
+#### Option 1: Using VS Code Terminal (Recommended)
+
+1. **Open the project in VS Code**
+```bash
+code .
+```
+
+2. **Open the integrated terminal** (`` Ctrl+` `` or `View > Terminal`)
+
+3. **Activate virtual environment** (if not already activated)
+```bash
+# macOS/Linux
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
+4. **Run the Streamlit app**
 ```bash
 streamlit run app.py
 ```
 
-Open `http://localhost:8501`. The app lets you:
+5. **Access the app** - VS Code will show a popup with the URL, or manually open:
+   - Local: `http://localhost:8501`
+   - Network: `http://192.168.x.x:8501`
+
+#### Option 2: Using VS Code Run Configuration
+
+1. Create `.vscode/launch.json` in your project root:
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Streamlit App",
+            "type": "python",
+            "request": "launch",
+            "module": "streamlit",
+            "args": ["run", "app.py"],
+            "console": "integratedTerminal"
+        }
+    ]
+}
+```
+
+2. Press `F5` or go to `Run > Start Debugging`
+
+#### What the App Does:
+
 - Select a brand and headphone category
 - Set rating, review count, Bluetooth version, driver size
 - Toggle features: ANC, ENC, Hi-Res Audio, Spatial Audio, Dual Pairing, Premium Codec, Low Latency, IPX rating, Fast Charging, etc.
 - Get an instant predicted price with a ±10% suggested range and segment badge
+- **Fully scrollable interface** - all inputs are accessible with smooth scrolling
 
 ### Data Collection
 

@@ -151,18 +151,25 @@ STAT_BG     = "rgba(13,21,38,.7)"  if is_dark else "rgba(241,245,249,.9)"
 FOOTER_COL  = "#334155"            if is_dark else "#64748b"
 IDLE_P      = "#475569"            if is_dark else "#64748b"
 
-bg_css = f"background-image:url('data:image/jpg;base64,{bg}');background-size:cover;background-position:center top;background-attachment:scroll;" if bg else ""
+bg_css = f"background-image:url('data:image/jpg;base64,{bg}');background-size:cover;background-position:center top;background-attachment:fixed;" if bg else ""
 
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{{font-family:'Inter',sans-serif;box-sizing:border-box;}}
+html, body {{overflow:auto !important; height:auto !important;}}
+[data-testid="stAppViewContainer"] {{overflow:auto !important; height:auto !important;}}
+[data-testid="stMain"] {{overflow:visible !important;}}
+.main .block-container {{overflow:visible !important;}}
 .stApp{{background-color:{APP_BG};color:{TEXT};{bg_css}}}
 .stApp::before{{content:'';position:fixed;inset:0;background:{OVERLAY};z-index:0;pointer-events:none;}}
 .stApp>*{{position:relative;z-index:1;}}
 [data-testid="stSidebar"]{{position:relative;z-index:100!important;}}
 header[data-testid="stHeader"],footer{{display:none!important;}}
 .block-container{{padding:1.8rem 2rem 1rem!important;max-width:100%!important;}}
+/* Hide the floating tooltip box on sliders, show value inline only */
+[data-testid="stSlider"] div[data-testid="stThumbValue"] {{display:none !important;}}
+[data-testid="stSlider"] div[data-baseweb="tooltip"] {{display:none !important;}}
 .hero{{background:{HERO_BG};border:1px solid {HERO_BORDER};border-radius:16px;padding:2rem;text-align:center;margin-bottom:1.5rem;box-shadow:0 0 40px rgba(99,102,241,.15);}}
 .hero h1{{font-size:2.4rem;font-weight:800;background:linear-gradient(90deg,#818cf8,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 .3rem;}}
 .hero p{{color:{MUTED};font-size:1rem;margin:0;}}
@@ -266,17 +273,12 @@ with col_left:
   <span style="font-size:.9rem;font-weight:700;color:{rc};">{r:.1f} / 5.0</span>
 </div>""", unsafe_allow_html=True)
 
-    # Inject CSS to colour the slider TRACK and THUMB dynamically
+    # Inject CSS to colour the slider TRACK and THUMB dynamically (no tooltip box)
     st.markdown(f"""<style>
 [data-testid="stSlider"] div[data-baseweb="slider"] div[role="slider"] {{
     background:{rc} !important;
     border-color:{rc} !important;
     box-shadow: 0 0 8px {rc}88 !important;
-}}
-[data-testid="stSlider"] div[data-baseweb="slider"] div[data-testid="stThumbValue"] {{
-    color:{rc} !important;
-    background:{INPUT_BG} !important;
-    border:1px solid {rc} !important;
 }}
 [data-testid="stSlider"] div[data-baseweb="slider"] > div:first-child > div:first-child {{
     background: linear-gradient(to right, {rc}, {rc}) !important;

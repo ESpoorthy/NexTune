@@ -1,27 +1,19 @@
 # 🎧 NexTune — Bluetooth Headphones Price Predictor
 
-> An ML-powered system for predicting optimal prices of Bluetooth headphones in the Indian market, built with Streamlit and FastAPI.
+<div align="center">
+
+![NexTune Banner](https://img.shields.io/badge/NexTune-Price_Predictor-blue?style=for-the-badge&logo=headphones)
+
+**An ML-powered system for predicting optimal prices of Bluetooth headphones in the Indian market**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
----
+[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Model Performance](#-model-performance) • [Contributing](#-contributing)
 
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Problem Statement](#problem-statement)
-- [Features](#features)
-- [System Architecture](#system-architecture)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Model Performance](#model-performance)
-- [Data Pipeline](#data-pipeline)
-- [Contributing](#contributing)
-- [License](#license)
+</div>
 
 ---
 
@@ -29,12 +21,13 @@
 
 NexTune helps price new Bluetooth headphones in the competitive Indian e-commerce market. By scraping product data from Amazon India, analyzing market trends, and training a Gradient Boosting model on 18 engineered features, the system provides data-driven price recommendations based on product specifications.
 
-**Key Capabilities:**
-- 🕷️ Automated web scraping from Amazon India (BeautifulSoup + Selenium)
-- 📊 Comprehensive exploratory data analysis
-- 🤖 Gradient Boosting price prediction — R² ≈ 0.80, MAPE ≈ 17.6%
-- 🎨 Interactive Streamlit web app with dark/light theme
-- ✅ Property-based testing with Hypothesis
+### Key Capabilities
+
+- 🕷️ **Automated Web Scraping** — Extract data from Amazon India using BeautifulSoup + Selenium
+- 📊 **Comprehensive EDA** — Statistical analysis and visualizations
+- 🤖 **ML Price Prediction** — Gradient Boosting model with R² ≈ 0.80, MAPE ≈ 17.6%
+- 🎨 **Interactive Web App** — Streamlit UI with dark/light theme and smooth scrolling
+- ✅ **Property-Based Testing** — Robust validation with Hypothesis
 
 ---
 
@@ -42,34 +35,57 @@ NexTune helps price new Bluetooth headphones in the competitive Indian e-commerc
 
 Your company is launching new wireless Bluetooth headphones in the Indian market. The data science team needs to recommend a suitable price based on:
 
-1. **Product Specifications**: Bluetooth version, ANC/ENC, driver size, IPX rating, codec support, etc.
-2. **Market Demand**: Competitor pricing and customer preferences from Amazon India
+1. **Product Specifications** — Bluetooth version, ANC/ENC, driver size, IPX rating, codec support
+2. **Market Demand** — Competitor pricing and customer preferences from Amazon India
 
-**Challenge**: Determine optimal pricing that balances competitiveness with profitability while considering brand tier and market positioning.
+**Challenge:** Determine optimal pricing that balances competitiveness with profitability while considering brand tier and market positioning.
 
 ---
 
 ## ✨ Features
 
+<table>
+<tr>
+<td width="50%">
+
 ### 🔍 Data Collection
-- **Basic Scraper**: Fast extraction of static HTML using BeautifulSoup
-- **Enhanced Scraper**: JavaScript-rendered content with Selenium + undetected-chromedriver
-- **Smart Extraction**: Regex-based parsing for unstructured spec data
-- **Unit Normalization**: Automatic conversion of various formats (e.g., "30h" → 30)
+- Basic scraper (BeautifulSoup)
+- Enhanced scraper (Selenium)
+- Smart regex-based extraction
+- Automatic unit normalization
+
+</td>
+<td width="50%">
 
 ### 📈 Data Analysis
-- **Automated EDA**: Statistical summaries and visualizations
-- **Feature Engineering**: `price_per_hour`, `brand_tier`, `bt_major`, `high_rating`, etc.
-- **Missing Value Handling**: Intelligent imputation strategies
-- **Data Quality**: Deduplication and validation across multiple datasets
+- Automated EDA
+- Feature engineering
+- Missing value handling
+- Data quality validation
+
+</td>
+</tr>
+<tr>
+<td width="50%">
 
 ### 🧠 Machine Learning
-- **18 Features**: Brand tier, ANC, ENC, Hi-Res Audio, Spatial Audio, Dual Pairing, Premium Codec, Low Latency, IPX level, ANC dB, driver size, Bluetooth version, rating, review count, and more
-- **Model**: Gradient Boosting Regressor (log-transformed target)
-- **Artifacts**: `price_predictor.pkl`, `scaler.pkl`, `label_encoders.pkl`, `features.pkl`, `brand_avg.pkl`, `brands.json`
+- 18 engineered features
+- Gradient Boosting Regressor
+- Log-transformed target
+- Model serialization
 
-### 🌐 Web App
-- **Streamlit App** (`app.py`): Full-featured interactive UI with dark/light theme, brand selector, feature toggles, battery life analysis, and price segment badges
+</td>
+<td width="50%">
+
+### 🌐 Web Application
+- Interactive Streamlit UI
+- Dark/light theme toggle
+- Smooth scrolling interface
+- Real-time predictions
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -77,13 +93,13 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     AMAZON INDIA                                │
-│              (Bluetooth Headphones / Earbuds)                   │
+│                        AMAZON INDIA                             │
+│                 (Bluetooth Headphones / Earbuds)                │
 └────────────────────────┬────────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    DATA COLLECTION LAYER                        │
+│                   DATA COLLECTION LAYER                         │
 │  ┌──────────────────┐         ┌──────────────────┐            │
 │  │  Basic Scraper   │         │ Enhanced Scraper │            │
 │  │ (BeautifulSoup)  │         │   (Selenium)     │            │
@@ -98,7 +114,7 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                  ANALYSIS & TRAINING LAYER                      │
+│                 ANALYSIS & TRAINING LAYER                       │
 │  ┌──────────────────┐         ┌──────────────────┐            │
 │  │   EDA Notebook   │    →    │  Model Training  │            │
 │  │  (Jupyter/Colab) │         │  (Scikit-learn)  │            │
@@ -108,7 +124,7 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
                          ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    DEPLOYMENT LAYER                             │
-│         Streamlit App · app.py · localhost:8501                 │
+│            Streamlit App · app.py · localhost:8501              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -122,7 +138,7 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
 | **Data Processing** | Pandas, NumPy | Data manipulation and feature engineering |
 | **Visualization** | Matplotlib, Seaborn | EDA and insights generation |
 | **Machine Learning** | Scikit-learn (GradientBoostingRegressor) | Model training and evaluation |
-| **Streamlit App** | Streamlit | Interactive web UI with theming |
+| **Web Framework** | Streamlit | Interactive web UI with theming |
 | **Testing** | Pytest, Hypothesis | Unit and property-based testing |
 | **Serialization** | Joblib | Model artifact persistence |
 
@@ -132,40 +148,50 @@ Your company is launching new wireless Bluetooth headphones in the Indian market
 
 ```
 NexTune/
-├── app.py                              # Streamlit web app (main UI)
-├── requirements.txt                    # Python dependencies
-├── assets/
-│   └── bg.jpg                          # Background image for Streamlit app
-├── data/
+├── 📄 app.py                           # Main Streamlit web application
+├── 📄 requirements.txt                 # Python dependencies
+├── 📄 README.md                        # Project documentation
+├── 📄 LICENSE                          # MIT License
+│
+├── 📁 assets/
+│   └── bg.jpg                          # Background image for UI
+│
+├── 📁 data/                            # Dataset storage
 │   ├── headphones-raw.csv              # Raw scraped data
-│   ├── amazon-earphones-market-data.csv
-│   ├── indian-wireless-headphones-scraped-data.csv
 │   ├── enhanced-headphones-dataset.csv
 │   ├── combined-headphones-dataset.csv
 │   ├── final-merged-dataset.csv        # Final training dataset
-│   ├── nexttune-cleaned-data.csv
-│   └── earbuds_by_company.csv / .json
-├── models/
-│   ├── price_predictor.pkl             # Trained GradientBoosting model
-│   ├── scaler.pkl                      # StandardScaler
-│   ├── label_encoders.pkl              # LabelEncoders for categorical features
-│   ├── features.pkl                    # Ordered feature list
+│   └── earbuds_by_company.json
+│
+├── 📁 models/                          # Trained model artifacts
+│   ├── price_predictor.pkl             # Gradient Boosting model
+│   ├── scaler.pkl                      # Feature scaler
+│   ├── label_encoders.pkl              # Categorical encoders
+│   ├── features.pkl                    # Feature list
 │   ├── brand_avg.pkl                   # Brand average prices
-│   └── brands.json                     # List of known brands
-├── notebooks/
+│   └── brands.json                     # Available brands
+│
+├── 📁 notebooks/                       # Jupyter notebooks
 │   ├── NexTune_Price_Prediction.ipynb  # Main prediction notebook
 │   ├── eda_notebook.ipynb              # Exploratory data analysis
-│   └── model_training.ipynb           # Model training pipeline
-├── scripts/
-│   └── merge_datasets.py               # Dataset merging utility
-├── src/
+│   └── model_training.ipynb            # Model training pipeline
+│
+├── 📁 scripts/                         # Utility scripts
+│   ├── merge_datasets.py               # Dataset merging
+│   └── retrain_model.py                # Model retraining
+│
+├── 📁 src/                             # Source code
 │   ├── data/
-│   │   └── preparation.py              # Data cleaning & preprocessing
-│   └── scrapers/
-│       ├── amazon_scraper.py           # Basic BeautifulSoup scraper
-│       └── enhanced_scraper.py         # Selenium-based scraper
-├── tests/                              # Test suite
-└── .kiro/specs/                        # Project specifications
+│   │   └── preparation.py              # Data preprocessing
+│   ├── scrapers/
+│   │   ├── amazon_scraper.py           # Basic scraper
+│   │   └── enhanced_scraper.py         # Selenium scraper
+│   └── api/
+│       └── templates/
+│           └── index.html              # Flask template (optional)
+│
+└── 📁 tests/                           # Test suite
+    └── test_*.py                       # Unit and property tests
 ```
 
 ---
@@ -174,12 +200,12 @@ NexTune/
 
 ### Prerequisites
 
-- **Python 3.8 or higher** (tested with Python 3.14)
+- **Python 3.8+** (tested with Python 3.14)
 - **VS Code** (recommended) with Python extension
-- Chrome/Chromium browser (for Selenium scraper)
-- ChromeDriver matching your Chrome version
+- **Git** for version control
+- Chrome/Chromium browser (optional, for scraper)
 
-### Setup
+### Quick Start
 
 1. **Clone the repository**
 ```bash
@@ -192,63 +218,48 @@ cd NexTune
 code .
 ```
 
-3. **Create virtual environment**
+3. **Create and activate virtual environment**
 ```bash
+# Create virtual environment
 python3 -m venv .venv
-```
 
-4. **Activate virtual environment**
-```bash
-# macOS/Linux
+# Activate it
+# macOS/Linux:
 source .venv/bin/activate
 
-# Windows
+# Windows:
 .venv\Scripts\activate
 ```
 
-5. **Install dependencies**
+4. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-6. **Retrain the model** (required for first-time setup or after scikit-learn version changes)
+5. **Retrain the model** (required for first-time setup)
 ```bash
 python3 scripts/retrain_model.py
 ```
 
-This will generate all required model files in the `models/` directory:
-- `price_predictor.pkl` - Trained Gradient Boosting model
-- `scaler.pkl` - Feature scaler
-- `label_encoders.pkl` - Categorical encoders
-- `features.pkl` - Feature list
-- `brand_avg.pkl` - Brand average prices
-- `brands.json` - Available brands
-
-7. **Install ChromeDriver** (optional - only needed for enhanced scraper)
-```bash
-# macOS
-brew install chromedriver
-
-# Ubuntu/Debian
-sudo apt-get install chromium-chromedriver
-```
+This generates all required model files:
+- ✅ `price_predictor.pkl` — Trained Gradient Boosting model
+- ✅ `scaler.pkl` — Feature scaler
+- ✅ `label_encoders.pkl` — Categorical encoders
+- ✅ `features.pkl` — Feature list
+- ✅ `brand_avg.pkl` — Brand average prices
+- ✅ `brands.json` — Available brands
 
 ---
 
 ## 📖 Usage
 
-### Run the App from VS Code
+### Running the App from VS Code
 
-#### Option 1: Using VS Code Terminal (Recommended)
+#### Method 1: Terminal (Recommended)
 
-1. **Open the project in VS Code**
-```bash
-code .
-```
+1. Open VS Code integrated terminal (`` Ctrl+` `` or `View > Terminal`)
 
-2. **Open the integrated terminal** (`` Ctrl+` `` or `View > Terminal`)
-
-3. **Activate virtual environment** (if not already activated)
+2. Activate virtual environment (if not already active)
 ```bash
 # macOS/Linux
 source .venv/bin/activate
@@ -257,18 +268,18 @@ source .venv/bin/activate
 .venv\Scripts\activate
 ```
 
-4. **Run the Streamlit app**
+3. Run the Streamlit app
 ```bash
 streamlit run app.py
 ```
 
-5. **Access the app** - VS Code will show a popup with the URL, or manually open:
-   - Local: `http://localhost:8501`
-   - Network: `http://192.168.x.x:8501`
+4. Open your browser at:
+   - **Local:** `http://localhost:8501`
+   - **Network:** `http://192.168.x.x:8501`
 
-#### Option 2: Using VS Code Run Configuration
+#### Method 2: VS Code Launch Configuration
 
-1. Create `.vscode/launch.json` in your project root:
+1. Create `.vscode/launch.json`:
 ```json
 {
     "version": "0.2.0",
@@ -287,48 +298,57 @@ streamlit run app.py
 
 2. Press `F5` or go to `Run > Start Debugging`
 
-#### What the App Does:
+### Using the App
 
-- Select a brand and headphone category
-- Set rating, review count, Bluetooth version, driver size
-- Toggle features: ANC, ENC, Hi-Res Audio, Spatial Audio, Dual Pairing, Premium Codec, Low Latency, IPX rating, Fast Charging, etc.
-- Get an instant predicted price with a ±10% suggested range and segment badge
-- **Fully scrollable interface** - all inputs are accessible with smooth scrolling
+1. **Select Brand** — Choose from 62 available brands
+2. **Set Specifications** — Rating, reviews, Bluetooth version, driver size
+3. **Toggle Features** — ANC, ENC, Hi-Res Audio, Spatial Audio, Dual Pairing, Premium Codec, Low Latency, IPX rating, Fast Charging
+4. **Adjust Battery Life** — Set expected battery hours
+5. **Click Predict Price** — Get instant price prediction with ±10% range
 
-### Data Collection
-
-```bash
-# Basic scraping
-python src/scrapers/amazon_scraper.py
-
-# Enhanced scraping (requires ChromeDriver)
-python src/scrapers/enhanced_scraper.py
-```
-
-### Model Training
-
-Open and run `notebooks/model_training.ipynb` in Jupyter or Google Colab. This trains the Gradient Boosting model and saves all artifacts to `models/`.
-
-### Exploratory Data Analysis
-
-```bash
-jupyter notebook notebooks/eda_notebook.ipynb
-```
+**Features:**
+- ✅ Fully scrollable interface
+- ✅ Dark/light theme toggle
+- ✅ Real-time predictions
+- ✅ Price segment badges (Budget/Mid-Range/Premium/Flagship)
+- ✅ Battery life analysis
 
 ---
 
 ## 📊 Model Performance
+
+<table>
+<tr>
+<td width="50%">
+
+### Metrics
 
 | Metric | Value |
 |--------|-------|
 | **Algorithm** | GradientBoostingRegressor |
 | **R² Score** | ~0.80 |
 | **MAPE** | ~17.6% |
-| **Features** | 18 scraped + engineered |
-| **Training Data** | 219 Amazon India products |
-| **Target** | log(price) → expm1 to recover ₹ |
+| **Features** | 18 engineered |
+| **Training Data** | 219 products |
+| **Target** | log(price) → expm1 |
 
-### Top Features
+</td>
+<td width="50%">
+
+### Price Segments
+
+| Segment | Range |
+|---------|-------|
+| 💚 Budget | < ₹1,000 |
+| 💙 Mid-Range | ₹1,000 – ₹3,000 |
+| 💜 Premium | ₹3,000 – ₹8,000 |
+| 🏆 Flagship | > ₹8,000 |
+
+</td>
+</tr>
+</table>
+
+### Feature Importance
 
 ```
 brand_enc / brand_tier    ████████████████████████████████ ~35%
@@ -340,25 +360,27 @@ review_count              ████ ~5%
 ipx_level / has_enc       ███ ~4%
 ```
 
-### Price Segments
-
-| Segment | Range |
-|---------|-------|
-| 💚 Budget | < ₹1,000 |
-| 💙 Mid-Range | ₹1,000 – ₹3,000 |
-| 💜 Premium | ₹3,000 – ₹8,000 |
-| 🏆 Flagship | > ₹8,000 |
-
 ---
 
 ## 🔄 Data Pipeline
 
-1. **Scraping** — Extract 200+ products from Amazon India (name, brand, price, rating, reviews, specs)
-2. **Merging** — Combine multiple scraped datasets via `scripts/merge_datasets.py`
-3. **Cleaning** — Remove duplicates, handle missing values, normalize units
-4. **Feature Engineering** — `brand_tier`, `bt_major`, `high_rating`, `has_*` binary flags, `anc_db`, `ipx_level`
-5. **Training** — Log-transform price, scale features, train GradientBoostingRegressor
-6. **Serialization** — Save model + all artifacts to `models/` with Joblib
+```mermaid
+graph LR
+    A[Amazon India] --> B[Web Scraping]
+    B --> C[Raw Data]
+    C --> D[Data Cleaning]
+    D --> E[Feature Engineering]
+    E --> F[Model Training]
+    F --> G[Model Artifacts]
+    G --> H[Streamlit App]
+```
+
+1. **Scraping** — Extract 200+ products from Amazon India
+2. **Merging** — Combine multiple datasets
+3. **Cleaning** — Remove duplicates, handle missing values
+4. **Feature Engineering** — Create `brand_tier`, `bt_major`, `high_rating`, binary flags
+5. **Training** — Log-transform price, scale features, train model
+6. **Serialization** — Save model artifacts with Joblib
 
 ---
 
@@ -370,28 +392,47 @@ pytest tests/ -v
 
 # Property-based tests only
 pytest tests/ -v -k "property"
+
+# With coverage
+pytest tests/ --cov=src --cov-report=html
 ```
 
-Property-based tests (Hypothesis) validate:
-- Data serialization round-trips
-- Unit normalization equivalence
-- Missing value handling after preprocessing
-- Deduplication idempotence
-- Train/test split proportions
-- Model prediction validity (₹500 – ₹50,000 range)
-- Model serialization consistency
+**Property-Based Tests (Hypothesis):**
+- ✅ Data serialization round-trips
+- ✅ Unit normalization equivalence
+- ✅ Missing value handling
+- ✅ Deduplication idempotence
+- ✅ Train/test split proportions
+- ✅ Model prediction validity (₹500 – ₹50,000)
+- ✅ Model serialization consistency
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Here's how you can help:
 
-Please follow PEP 8, add tests for new features, and ensure all tests pass before submitting.
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Commit your changes**
+   ```bash
+   git commit -m 'Add amazing feature'
+   ```
+4. **Push to the branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. **Open a Pull Request**
+
+### Guidelines
+
+- Follow PEP 8 style guide
+- Add tests for new features
+- Update documentation as needed
+- Ensure all tests pass before submitting
 
 ---
 
@@ -403,10 +444,24 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 🙏 Acknowledgments
 
-- Data sourced from Amazon India
+- Data sourced from **Amazon India**
 - Built with open-source tools and libraries
 - Inspired by real-world pricing challenges in Indian e-commerce
 
 ---
 
+## 📞 Contact
+
+**Project Maintainer:** [ESpoorthy](https://github.com/ESpoorthy)
+
+**Repository:** [github.com/ESpoorthy/NexTune](https://github.com/ESpoorthy/NexTune)
+
+---
+
+<div align="center">
+
 **Made with ❤️ for data-driven pricing decisions**
+
+⭐ Star this repo if you find it helpful!
+
+</div>
